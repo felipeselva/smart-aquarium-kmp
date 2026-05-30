@@ -1,47 +1,49 @@
 package org.example.project
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
-
-import aquarios_inteligentes.composeapp.generated.resources.Res
-import aquarios_inteligentes.composeapp.generated.resources.compose_multiplatform
+import androidx.compose.ui.unit.dp
+import org.example.project.viewmodel.AquarioViewModel
 
 @Composable
-@Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+        // Instancia o nosso ViewModel (que vai disparar a busca na API)
+        val viewModel = remember { AquarioViewModel() }
+
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+
+            Text(
+                text = "Meus Aquários Inteligentes",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // Pega a lista que o ViewModel buscou na internet
+            val aquarios = viewModel.listaAquarios
+
+            if (aquarios.isEmpty()) {
+                Text("Buscando dados ou nenhum aquário encontrado...\n(A sua API do Spring Boot está ligada?)")
+            } else {
+                // Desenha uma lista rolável na tela
+                LazyColumn {
+                    items(aquarios) { aquario ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(text = "Nome: ${aquario.nome}", style = MaterialTheme.typography.titleLarge)
+                                Text(text = "ID: ${aquario.id}")
+                                Text(text = "Capacidade: ${aquario.capacidadeLitros}L")
+                                Text(text = "Água Salgada: ${if (aquario.aguaSalgada) "Sim" else "Não"}")
+                                Text(text = "Instalação: ${aquario.dataInstalacao}")
+                            }
+                        }
+                    }
                 }
             }
         }

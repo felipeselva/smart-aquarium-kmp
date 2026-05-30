@@ -1,56 +1,54 @@
 package org.example.project.repository
 
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
 import org.example.project.model.Aquario
 import org.example.project.model.SensorLeitura
 
 class RepositorioRemoto {
 
-    // Simulando o nosso "Banco de Dados" na memória para a prova (AV1)
-    private val aquariosNoBanco = mutableListOf<Aquario>()
-    private val leiturasNoBanco = mutableListOf<SensorLeitura>()
-
     // ==========================================
-    // MÉTODOS HTTP (CRUD) PARA O AQUÁRIO
+    // PARTE 1: KTOR (INTERNET) PARA OS AQUÁRIOS
     // ==========================================
-
-    // GET - Buscar toda a lista
-    fun getAquarios(): List<Aquario> {
-        return aquariosNoBanco.toList() // Retorna uma cópia da lista
-    }
-
-    // POST - Criar um novo
-    fun addAquario(aquario: Aquario) {
-        aquariosNoBanco.add(aquario)
-    }
-
-    // PUT - Atualizar um existente
-    fun updateAquario(aquarioAtualizado: Aquario) {
-        // Procura se o aquário existe pelo ID
-        val index = aquariosNoBanco.indexOfFirst { it.id == aquarioAtualizado.id }
-        if (index != -1) {
-            aquariosNoBanco[index] = aquarioAtualizado // Substitui pelo novo
+    private val cliente = HttpClient {
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true // Ignora campos a mais que a API mandar
+            })
         }
     }
 
-    // DELETE - Apagar
-    fun deleteAquario(id: String) {
-        aquariosNoBanco.removeAll { it.id == id }
+    suspend fun buscarAquarios(): List<Aquario> {
+        // 👇👇👇 ATENÇÃO: TROQUE O IP AQUI! 👇👇👇
+        // Substitua "192.168.X.X" pelo IPv4 do seu computador (ex: 192.168.0.15)
+        return cliente.get("http://192.168.15.6:8080/aquarios").body()
     }
 
     // ==========================================
-    // MÉTODOS HTTP (CRUD) PARA O SENSOR
+    // PARTE 2: DADOS LOCAIS PARA OS SENSORES (Para não dar erro)
     // ==========================================
+    private val leiturasLocais = mutableListOf<SensorLeitura>()
 
-    fun getLeituras(): List<SensorLeitura> = leiturasNoBanco.toList()
+    fun getLeituras(): List<SensorLeitura> {
+        return leiturasLocais
+    }
 
-    fun addLeitura(leitura: SensorLeitura) { leiturasNoBanco.add(leitura) }
+    fun addLeitura(leitura: SensorLeitura) {
+        leiturasLocais.add(leitura)
+    }
 
-    fun updateLeitura(leituraAtualizada: SensorLeitura) {
-        val index = leiturasNoBanco.indexOfFirst { it.id == leituraAtualizada.id }
-        if (index != -1) leiturasNoBanco[index] = leituraAtualizada
+    fun updateLeitura(leitura: SensorLeitura) {
+        val index = leiturasLocais.indexOfFirst { it.id == leitura.id }
+        if (index != -1) {
+            leiturasLocais[index] = leitura
+        }
     }
 
     fun deleteLeitura(id: String) {
-        leiturasNoBanco.removeAll { it.id == id }
+        leiturasLocais.removeAll { it.id == id }
     }
 }

@@ -1,8 +1,5 @@
-package org.example.project.model
+package entidades
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class Aquario(
     val id: String = "",
     val nome: String = "",
