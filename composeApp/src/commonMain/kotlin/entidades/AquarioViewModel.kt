@@ -1,5 +1,7 @@
 package entidades
 
+import org.example.project.model.Aquario
+
 class AquarioViewModel {
 
     import androidx.compose.runtime.getValue

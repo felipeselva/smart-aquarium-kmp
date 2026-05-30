@@ -1,5 +1,8 @@
 package entidades
 
+import org.example.project.model.Aquario
+import org.example.project.model.SensorLeitura
+
 class RepositorioRemoto {
     class RepositorioRemoto {
 

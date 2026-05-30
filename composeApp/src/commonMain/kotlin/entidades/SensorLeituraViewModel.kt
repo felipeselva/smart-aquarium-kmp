@@ -1,5 +1,7 @@
 package entidades
 
+import org.example.project.model.SensorLeitura
+
 class SensorLeituraViewModel {
 
     import androidx.compose.runtime.getValue
