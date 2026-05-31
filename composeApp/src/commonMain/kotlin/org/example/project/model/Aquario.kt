@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Aquario(
-    val id: String = "",
+    val id: String? = null,
     val nome: String = "",
     val capacidadeLitros: Double = 0.0,
     val aguaSalgada: Boolean = false,

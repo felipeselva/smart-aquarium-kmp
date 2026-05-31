@@ -11,45 +11,32 @@ import org.example.project.repository.RepositorioRemoto
 
 class AquarioViewModel : ViewModel() {
 
-    // Instancia o nosso motoqueiro (Ktor) para fazer as requisições
     private val repositorio = RepositorioRemoto()
 
-    // 1. Variável de estado para guardar a lista de aquários que vem da API
     var listaAquarios by mutableStateOf(listOf<Aquario>())
         private set
 
-    // 2. Variáveis de estado para o formulário da tela
-    var formId by mutableStateOf("")
+    // Tratamos o formId corretamente como String opcional
+    var formId by mutableStateOf<String?>(null)
     var formNome by mutableStateOf("")
     var formCapacidade by mutableStateOf("")
     var formAguaSalgada by mutableStateOf(false)
     var formInstalacao by mutableStateOf("")
 
     init {
-        // Assim que a tela abrir, ele já vai na API buscar os dados
         carregarAquarios()
     }
 
-    // ==========================================
-    // FUNÇÃO QUE VAI NA INTERNET (GET)
-    // ==========================================
     fun carregarAquarios() {
         viewModelScope.launch {
             try {
-                // Vai na internet buscar a lista JSON
-                val listaDaInternet = repositorio.buscarAquarios()
-
-                // Pega a lista que veio do Spring Boot e joga na tela!
-                listaAquarios = listaDaInternet
+                listaAquarios = repositorio.buscarAquarios()
             } catch (e: Exception) {
                 println("Erro ao buscar dados da API: ${e.message}")
             }
         }
     }
 
-    // ==========================================
-    // FUNÇÕES DA TELA (Formulário)
-    // ==========================================
     fun preencherFormulario(aquario: Aquario) {
         formId = aquario.id
         formNome = aquario.nome
@@ -59,13 +46,50 @@ class AquarioViewModel : ViewModel() {
     }
 
     fun limparCampos() {
-        formId = ""
+        formId = null
         formNome = ""
         formCapacidade = ""
         formAguaSalgada = false
         formInstalacao = ""
     }
 
-    // Obs: As funções gravar() e apagar() precisarão ser adaptadas
-    // depois para usar o Ktor (POST e DELETE). O foco agora é listar (GET)!
+    fun gravar() {
+        viewModelScope.launch {
+            try {
+                val aquario = Aquario(
+                    id = formId,
+                    nome = formNome,
+                    capacidadeLitros = formCapacidade.toDoubleOrNull() ?: 0.0,
+                    aguaSalgada = formAguaSalgada,
+                    dataInstalacao = formInstalacao
+                )
+
+                if (formId.isNullOrBlank()) {
+                    // Se não tem ID, cria um NOVO registro
+                    repositorio.adicionarAquario(aquario)
+                } else {
+                    // Se tem ID, ATUALIZA o existente
+                    repositorio.atualizarAquario(aquario)
+                }
+
+                limparCampos()
+                carregarAquarios()
+
+            } catch (e: Exception) {
+                println("Erro ao gravar na API: ${e.message}")
+            }
+        }
+    }
+
+    fun apagar(id: String?) {
+        if (id.isNullOrBlank()) return
+        viewModelScope.launch {
+            try {
+                repositorio.apagarAquario(id)
+                carregarAquarios()
+            } catch (e: Exception) {
+                println("Erro ao apagar na API: ${e.message}")
+            }
+        }
+    }
 }

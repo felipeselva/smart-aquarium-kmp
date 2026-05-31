@@ -3,68 +3,39 @@ package org.example.project.viewmodel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
 import org.example.project.model.SensorLeitura
 import org.example.project.repository.RepositorioRemoto
 import kotlin.random.Random
 
-class SensorLeituraViewModel(private val repositorio: RepositorioRemoto) {
+class SensorLeituraViewModel : ViewModel() {
 
-    // 1. Variável de estado para guardar a lista de leituras do sensor
-    var listaLeituras by mutableStateOf(listOf<SensorLeitura>())
+    private val repositorio = RepositorioRemoto()
+
+    var listaSensores by mutableStateOf(listOf<SensorLeitura>())
         private set
 
-    // 2. Variáveis de estado para cada campo do formulário
+    // Campos do formulário mapeados com a sua classe SensorLeitura
     var formId by mutableStateOf("")
     var formIdAquario by mutableStateOf("")
-    var formTemperatura by mutableStateOf("") // String para facilitar no campo de texto
+    var formTemperatura by mutableStateOf("")
     var formAlertaAtivo by mutableStateOf(false)
     var formHoraLeitura by mutableStateOf("")
 
     init {
-        // Carrega a lista do banco em memória ao iniciar
-        carregarLista()
+        carregarSensores()
     }
 
-    // ==========================================
-    // FUNÇÕES DO CRUD
-    // ==========================================
-
-    private fun carregarLista() {
-        listaLeituras = repositorio.getLeituras()
+    fun carregarSensores() {
+        listaSensores = repositorio.getLeituras().toList()
     }
 
-    fun gravar() {
-        val leitura = SensorLeitura(
-            id = formId.ifEmpty { Random.nextInt(1000, 9999).toString() },
-            idAquario = formIdAquario,
-            temperatura = formTemperatura.toDoubleOrNull() ?: 0.0,
-            alertaAtivo = formAlertaAtivo,
-            horaLeitura = formHoraLeitura
-        )
-
-        // Se não tem ID preenchido, é POST. Se tem, é PUT.
-        if (formId.isEmpty()) {
-            repositorio.addLeitura(leitura)
-        } else {
-            repositorio.updateLeitura(leitura)
-        }
-
-        limparCampos()
-        carregarLista()
-    }
-
-    fun apagar(id: String) {
-        repositorio.deleteLeitura(id)
-        carregarLista()
-    }
-
-    // Acionado pelo botão Editar do Card
-    fun preencherFormulario(leitura: SensorLeitura) {
-        formId = leitura.id
-        formIdAquario = leitura.idAquario
-        formTemperatura = leitura.temperatura.toString()
-        formAlertaAtivo = leitura.alertaAtivo
-        formHoraLeitura = leitura.horaLeitura
+    fun preencherFormulario(sensor: SensorLeitura) {
+        formId = sensor.id
+        formIdAquario = sensor.idAquario
+        formTemperatura = sensor.temperatura.toString()
+        formAlertaAtivo = sensor.alertaAtivo
+        formHoraLeitura = sensor.horaLeitura
     }
 
     fun limparCampos() {
@@ -73,5 +44,30 @@ class SensorLeituraViewModel(private val repositorio: RepositorioRemoto) {
         formTemperatura = ""
         formAlertaAtivo = false
         formHoraLeitura = ""
+    }
+
+    fun gravar() {
+        val sensor = SensorLeitura(
+            // Agora usamos o Random nativo do Kotlin para gerar um ID que funciona em Android e iOS
+            id = formId.ifBlank { Random.nextInt(100000, 999999).toString() },
+            idAquario = formIdAquario,
+            temperatura = formTemperatura.toDoubleOrNull() ?: 0.0,
+            alertaAtivo = formAlertaAtivo,
+            horaLeitura = formHoraLeitura
+        )
+
+        if (formId.isBlank()) {
+            repositorio.addLeitura(sensor)
+        } else {
+            repositorio.updateLeitura(sensor)
+        }
+
+        limparCampos()
+        carregarSensores()
+    }
+
+    fun apagar(id: String) {
+        repositorio.deleteLeitura(id)
+        carregarSensores()
     }
 }

@@ -30,8 +30,13 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+
+            // 👇 MOTOR OKHTTP: Resolve o "Crash Fatal" do seu logcat
+            implementation("io.ktor:ktor-client-okhttp:2.3.11")
         }
         commonMain.dependencies {
+            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.7.0-alpha07")
+            implementation(compose.materialIconsExtended)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -41,7 +46,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
-            // O Ktor agora está no lugar certo! (Visível para o RepositorioRemoto)
+            // Dependências do Ktor
             implementation("io.ktor:ktor-client-core:2.3.11")
             implementation("io.ktor:ktor-client-content-negotiation:2.3.11")
             implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.11")
