@@ -1,13 +1,36 @@
 package org.example.project
 
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import org.example.project.repository.RepositorioRemoto
 import org.example.project.viewmodel.*
 
+// CORES DO TEMA ASIÁTICO/ZEN
+val AzulProfundo = Color(0xFF00416A)
+val LaranjaKoi = Color(0xFFE95C4B)
+val FundoAreia = Color(0xFFF9F6F0)
+val VerdeBambu = Color(0xFF2E8B57)
+
+private val TemaZenAquario = lightColorScheme(
+    primary = AzulProfundo,
+    secondary = VerdeBambu,
+    tertiary = LaranjaKoi,
+    background = FundoAreia,
+    surface = Color.White,
+    error = LaranjaKoi
+)
+
 @Composable
 fun App() {
-    MaterialTheme {
+    MaterialTheme(colorScheme = TemaZenAquario) {
         val repo = remember { RepositorioRemoto() }
         var telaAtual by remember { mutableStateOf("login") }
 
@@ -15,24 +38,76 @@ fun App() {
         val aquarioVM = remember { AquarioViewModel(repo) }
         val sensorVM = remember { SensorLeituraViewModel(repo) }
 
-        when (telaAtual) {
-            "login" -> TelaLogin(
-                viewModel = loginVM,
-                onNavegarParaAquarios = { telaAtual = "aquarios" }
-            )
-            "aquarios" -> {
-                LaunchedEffect(Unit) { aquarioVM.carregarAquarios() }
-                TelaAquarios(
-                    viewModel = aquarioVM,
-                    onNavegarParaSensores = { telaAtual = "sensores" } // O "fio" para ir para os sensores
+        val fazerLogout = {
+            repo.tokenJwt = null
+            telaAtual = "login"
+        }
+
+        Surface(color = MaterialTheme.colorScheme.background) {
+            if (telaAtual == "login") {
+                TelaLogin(
+                    viewModel = loginVM,
+                    onNavegarParaAquarios = { telaAtual = "home" }
                 )
-            }
-            "sensores" -> {
-                LaunchedEffect(Unit) { sensorVM.carregarLeituras() }
-                TelaSensores(
-                    viewModel = sensorVM,
-                    onVoltar = { telaAtual = "aquarios" } // O "fio" para voltar para os aquários
-                )
+            } else {
+                // ESTRUTURA COM BARRA DE NAVEGAÇÃO INFERIOR
+                Scaffold(
+                    bottomBar = {
+                        NavigationBar(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.primary
+                            // Removi o tonalElevation daqui! Zero uso de 'dp' neste arquivo.
+                        ) {
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Default.Home, contentDescription = "Início") },
+                                label = { Text("Início") },
+                                selected = telaAtual == "home",
+                                onClick = { telaAtual = "home" },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
+                            )
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Default.List, contentDescription = "Aquários") },
+                                label = { Text("Aquários") },
+                                selected = telaAtual == "aquarios",
+                                onClick = { telaAtual = "aquarios" },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
+                            )
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Default.Warning, contentDescription = "IoT") },
+                                label = { Text("IoT") },
+                                selected = telaAtual == "sensores",
+                                onClick = { telaAtual = "sensores" },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
+                            )
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
+                                label = { Text("Perfil") },
+                                selected = telaAtual == "perfil",
+                                onClick = { telaAtual = "perfil" },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
+                            )
+                        }
+                    }
+                ) { paddingValues ->
+                    Modifier.padding(paddingValues).let {
+                        when (telaAtual) {
+                            "home" -> TelaHome(
+                                onNavegarParaAquarios = { telaAtual = "aquarios" },
+                                onNavegarParaSensores = { telaAtual = "sensores" },
+                                onSair = fazerLogout
+                            )
+                            "aquarios" -> {
+                                LaunchedEffect(Unit) { aquarioVM.carregarAquarios() }
+                                TelaAquarios(viewModel = aquarioVM)
+                            }
+                            "sensores" -> {
+                                LaunchedEffect(Unit) { sensorVM.carregarLeituras() }
+                                TelaSensores(viewModel = sensorVM, onVoltar = { telaAtual = "home" })
+                            }
+                            "perfil" -> TelaPerfil(onSair = fazerLogout)
+                        }
+                    }
+                }
             }
         }
     }

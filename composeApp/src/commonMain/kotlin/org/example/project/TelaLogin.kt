@@ -1,70 +1,122 @@
 package org.example.project
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.example.project.viewmodel.LoginViewModel
 
 @Composable
 fun TelaLogin(
     viewModel: LoginViewModel,
-    onNavegarParaAquarios: () -> Unit // Função de GPS para trocar de tela
+    onNavegarParaAquarios: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    // Fundo limpo que abraça a tela inteira
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Text(
-            text = "Smart Aquarium",
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-
-        // Campo de E-mail
-        OutlinedTextField(
-            value = viewModel.email,
-            onValueChange = { viewModel.email = it },
-            label = { Text("E-mail") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Campo de Senha
-        OutlinedTextField(
-            value = viewModel.senha,
-            onValueChange = { viewModel.senha = it },
-            label = { Text("Senha") },
-            visualTransformation = PasswordVisualTransformation(), // Esconde a senha com bolinhas
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Exibe o erro profissionalmente caso o usuário esqueça de preencher
-        if (viewModel.mensagemErro != null) {
-            Text(
-                text = viewModel.mensagemErro!!,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Botão de Entrar
-        Button(
-            onClick = {
-                viewModel.fazerLogin(onLoginSucesso = onNavegarParaAquarios)
-            },
-            modifier = Modifier.fillMaxWidth().height(50.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp), // Margens respiráveis
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text("Entrar")
+
+            // Título Minimalista
+            Text(
+                text = "Smart Aquarium",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Light,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            // Subtítulo Zen
+            Text(
+                text = "Seu ecossistema em harmonia.",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(top = 8.dp, bottom = 48.dp)
+            )
+
+            // Input: E-mail
+            OutlinedTextField(
+                value = viewModel.email,
+                onValueChange = { viewModel.email = it },
+                label = { Text("E-mail") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Input: Senha
+            OutlinedTextField(
+                value = viewModel.senha,
+                onValueChange = { viewModel.senha = it },
+                label = { Text("Senha") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                singleLine = true
+            )
+
+            // Feedback visual de erro (Subtil, mas claro)
+            if (viewModel.mensagemErro != null) {
+                Text(
+                    text = viewModel.mensagemErro!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp).align(Alignment.Start)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Botão Principal (Flat, sem sombras)
+            Button(
+                onClick = { viewModel.fazerLogin(onNavegarParaAquarios) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                elevation = null // Estética Zen: sem elevação
+            ) {
+                Text("Entrar", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // TextButton sútil para uma futura tela de registro
+            TextButton(onClick = { /* Lógica de registro no futuro */ }) {
+                Text(
+                    text = "Criar um novo santuário",
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
         }
     }
 }
