@@ -16,10 +16,23 @@ fun App() {
         val sensorVM = remember { SensorLeituraViewModel(repo) }
 
         when (telaAtual) {
-            "login" -> TelaLogin(viewModel = loginVM, onNavegarParaAquarios = { telaAtual = "aquarios" })
+            "login" -> TelaLogin(
+                viewModel = loginVM,
+                onNavegarParaAquarios = { telaAtual = "aquarios" }
+            )
             "aquarios" -> {
                 LaunchedEffect(Unit) { aquarioVM.carregarAquarios() }
-                TelaAquarios(viewModel = aquarioVM)
+                TelaAquarios(
+                    viewModel = aquarioVM,
+                    onNavegarParaSensores = { telaAtual = "sensores" } // O "fio" para ir para os sensores
+                )
+            }
+            "sensores" -> {
+                LaunchedEffect(Unit) { sensorVM.carregarLeituras() }
+                TelaSensores(
+                    viewModel = sensorVM,
+                    onVoltar = { telaAtual = "aquarios" } // O "fio" para voltar para os aquários
+                )
             }
         }
     }

@@ -57,4 +57,28 @@ class RepositorioRemoto {
             tokenJwt?.let { header(HttpHeaders.Authorization, "Bearer $it") }
         }
     } catch (e: Exception) { null }
+
+    // ==========================================
+    // FUNÇÕES DOS SENSORES (IoT)
+    // ==========================================
+
+    suspend fun obterLeituras(): List<SensorLeitura> = try {
+        cliente.get("$BASE_URL/sensores") {
+            tokenJwt?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+        }.body()
+    } catch (e: Exception) { emptyList() }
+
+    suspend fun gravarLeitura(leitura: SensorLeitura) = try {
+        cliente.post("$BASE_URL/sensores") {
+            contentType(ContentType.Application.Json)
+            setBody(leitura)
+            tokenJwt?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+        }
+    } catch (e: Exception) { null }
+
+    suspend fun excluirLeitura(id: String) = try {
+        cliente.delete("$BASE_URL/sensores/$id") {
+            tokenJwt?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+        }
+    } catch (e: Exception) { null }
 }

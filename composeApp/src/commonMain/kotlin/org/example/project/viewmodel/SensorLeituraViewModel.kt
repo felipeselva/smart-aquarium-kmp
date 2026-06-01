@@ -19,7 +19,7 @@ class SensorLeituraViewModel(private val repositorio: RepositorioRemoto) : ViewM
 
     fun carregarLeituras() {
         viewModelScope.launch {
-            // listaSensores = repositorio.obterLeituras()
+            listaSensores = repositorio.obterLeituras() // Ativado!
         }
     }
 
@@ -36,8 +36,6 @@ class SensorLeituraViewModel(private val repositorio: RepositorioRemoto) : ViewM
 
     fun gravar() {
         val temp = formTemperatura.toDoubleOrNull() ?: 0.0
-
-        // Construtor alinhado com a sua classe SensorLeitura.kt
         val leitura = SensorLeitura(
             id = idAtual ?: "",
             idAquario = formIdAquario,
@@ -47,12 +45,16 @@ class SensorLeituraViewModel(private val repositorio: RepositorioRemoto) : ViewM
         )
 
         viewModelScope.launch {
-            // repositorio.gravarLeitura(leitura)
+            repositorio.gravarLeitura(leitura) // Ativado!
+            carregarLeituras() // Recarrega a lista
             limparCampos()
         }
     }
 
-    fun apagar(id: String) { // Agora aceita String sem reclamar
-        viewModelScope.launch { /* repositorio.excluirLeitura(id) */ }
+    fun apagar(id: String) {
+        viewModelScope.launch {
+            repositorio.excluirLeitura(id) // Ativado!
+            carregarLeituras()
+        }
     }
 }

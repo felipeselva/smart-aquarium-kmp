@@ -14,11 +14,24 @@ import androidx.compose.ui.unit.dp
 import org.example.project.viewmodel.AquarioViewModel
 
 @Composable
-fun TelaAquarios(viewModel: AquarioViewModel) {
+fun TelaAquarios(
+    viewModel: AquarioViewModel,
+    onNavegarParaSensores: () -> Unit // Parâmetro de navegação recebido do App.kt
+) {
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Gerenciar Aquários", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
+
+        // NOVO: Botão que nos leva para a tela dos sensores
+        Button(
+            onClick = onNavegarParaSensores,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+        ) {
+            Text("Ver Sensores IoT 🌡️")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // 1. FORMULÁRIO
         Card(
@@ -100,7 +113,6 @@ fun TelaAquarios(viewModel: AquarioViewModel) {
                                 Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
                             }
 
-                            // ERRO DE SINTAXE CORRIGIDO AQUI!!!
                             IconButton(onClick = { viewModel.apagar(aquario.id) }) {
                                 Icon(Icons.Default.Delete, contentDescription = "Apagar", tint = MaterialTheme.colorScheme.error)
                             }

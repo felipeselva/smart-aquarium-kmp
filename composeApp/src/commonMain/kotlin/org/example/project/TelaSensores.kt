@@ -10,11 +10,22 @@ import androidx.compose.ui.unit.dp
 import org.example.project.viewmodel.SensorLeituraViewModel
 
 @Composable
-fun TelaSensores(viewModel: SensorLeituraViewModel) {
+fun TelaSensores(
+    viewModel: SensorLeituraViewModel,
+    onVoltar: () -> Unit // Parâmetro para ação de voltar
+) {
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+
+        // NOVO: O botão de voltar no topo
+        OutlinedButton(onClick = onVoltar, modifier = Modifier.fillMaxWidth()) {
+            Text("⬅ Voltar para Aquários")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text("Leituras dos Sensores", style = MaterialTheme.typography.headlineMedium)
 
-        // Formulário (Movid de fora de blocos lógicos para evitar erro @Composable)
+        // Formulário
         OutlinedTextField(
             value = viewModel.formIdAquario,
             onValueChange = { viewModel.formIdAquario = it },
