@@ -100,7 +100,8 @@ fun TelaHome(
                     modifier = Modifier.padding(24.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("🎋", fontSize = 40.sp, modifier = Modifier.padding(end = 16.dp))
+                    // 🔥 Termômetro no lugar do coqueiro
+                    Text("🌡️", fontSize = 40.sp, modifier = Modifier.padding(end = 16.dp))
                     Column {
                         Text("Central IoT", fontSize = 20.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
                         Text("Monitore a temperatura da água", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline)

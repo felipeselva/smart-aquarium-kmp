@@ -1,12 +1,12 @@
 package org.example.project
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.*
@@ -16,86 +16,52 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import org.example.project.viewmodel.AquarioViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TelaAquarios(viewModel: AquarioViewModel) {
+    // Controlos da Gaveta (Bottom Sheet) e Snackbar (Avisos)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var mostrarGaveta by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }, // 3. Feedback Visual
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Lista de Aquários", fontWeight = FontWeight.Light, fontSize = 22.sp) },
+                title = { Text("Os Meus Aquários", fontWeight = FontWeight.Light, fontSize = 22.sp) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.primary
                 )
             )
         },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { mostrarGaveta = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.surface
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Novo Aquário")
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
+
+        // A lista agora ocupa o ecrã inteiro e é muito mais limpa!
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
-                ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Text("Novo Aquário", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 16.dp))
-
-                        OutlinedTextField(
-                            value = viewModel.formNome,
-                            onValueChange = { viewModel.formNome = it },
-                            label = { Text("Identificação") },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            singleLine = true
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            OutlinedTextField(
-                                value = viewModel.formCapacidade,
-                                onValueChange = { viewModel.formCapacidade = it },
-                                label = { Text("Vol (Litros)") },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
-                                singleLine = true
-                            )
-                            OutlinedTextField(
-                                value = viewModel.formInstalacao,
-                                onValueChange = { viewModel.formInstalacao = it },
-                                label = { Text("Data") },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
-                                singleLine = true
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                            Button(onClick = { viewModel.gravar() }, shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), elevation = null) {
-                                Text("Gravar 🐟")
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            TextButton(onClick = { viewModel.limparCampos() }) {
-                                Text("Limpar", color = MaterialTheme.colorScheme.outline)
-                            }
-                        }
-                    }
-                }
-            }
+            item { Spacer(modifier = Modifier.height(8.dp)) }
 
             if (viewModel.listaAquarios.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
-                        Text("A água está calma. Adicione seu primeiro aquário. 🎏", color = MaterialTheme.colorScheme.outline)
+                        Text("A água está calma. Adicione a sua primeira carpa. 🎏", color = MaterialTheme.colorScheme.outline)
                     }
                 }
             } else {
@@ -111,11 +77,17 @@ fun TelaAquarios(viewModel: AquarioViewModel) {
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                 Text(aquario.nome, fontSize = 18.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
                                 Row {
-                                    IconButton(onClick = { viewModel.preencherFormulario(aquario) }, modifier = Modifier.size(24.dp)) {
+                                    IconButton(onClick = {
+                                        viewModel.preencherFormulario(aquario)
+                                        mostrarGaveta = true
+                                    }, modifier = Modifier.size(24.dp)) {
                                         Icon(Icons.Outlined.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.secondary)
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
-                                    IconButton(onClick = { viewModel.apagar(aquario.id) }, modifier = Modifier.size(24.dp)) {
+                                    IconButton(onClick = {
+                                        viewModel.apagar(aquario.id)
+                                        coroutineScope.launch { snackbarHostState.showSnackbar("🗑️ Aquário apagado.") }
+                                    }, modifier = Modifier.size(24.dp)) {
                                         Icon(Icons.Default.Delete, contentDescription = "Apagar", tint = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f))
                                     }
                                 }
@@ -124,19 +96,78 @@ fun TelaAquarios(viewModel: AquarioViewModel) {
                             Text("${aquario.capacidadeLitros} Litros • Desde ${aquario.dataInstalacao}", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline)
 
                             Spacer(modifier = Modifier.height(12.dp))
-                            // ENRIQUECIMENTO VISUAL: Etiquetas de Status (Dá ar de sistema inteligente)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)) {
                                     Text("💧 Água Cristalina", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                                }
-                                Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)) {
-                                    Text("🌡️ Temp. Estável", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                                 }
                             }
                         }
                     }
                 }
-                item { Spacer(modifier = Modifier.height(32.dp)) }
+                item { Spacer(modifier = Modifier.height(80.dp)) } // Espaço para o FAB não cobrir os cards
+            }
+        }
+
+        // 1. FORMULÁRIO EM GAVETA (Abre apenas quando o utilizador clica no +)
+        if (mostrarGaveta) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    mostrarGaveta = false
+                    viewModel.limparCampos()
+                },
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
+                Column(modifier = Modifier.padding(24.dp).padding(bottom = 32.dp)) {
+                    Text("Configurar Aquário", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 16.dp))
+
+                    OutlinedTextField(
+                        value = viewModel.formNome,
+                        onValueChange = { viewModel.formNome = it },
+                        label = { Text("Identificação") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = viewModel.formCapacidade,
+                            onValueChange = { viewModel.formCapacidade = it },
+                            label = { Text("Volume (L)") },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = viewModel.formInstalacao,
+                            onValueChange = { viewModel.formInstalacao = it },
+                            label = { Text("Data") },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = {
+                            viewModel.gravar()
+                            coroutineScope.launch {
+                                sheetState.hide()
+                                mostrarGaveta = false
+                                viewModel.limparCampos()
+                                snackbarHostState.showSnackbar("✔️ Aquário registado com sucesso!")
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text("Salvar Registo", fontSize = 16.sp)
+                    }
+                }
             }
         }
     }

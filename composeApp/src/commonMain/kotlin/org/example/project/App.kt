@@ -1,5 +1,6 @@
 package org.example.project
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -10,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 import org.example.project.repository.RepositorioRemoto
 import org.example.project.viewmodel.*
 
@@ -50,13 +52,11 @@ fun App() {
                     onNavegarParaAquarios = { telaAtual = "home" }
                 )
             } else {
-                // ESTRUTURA COM BARRA DE NAVEGAÇÃO INFERIOR
                 Scaffold(
                     bottomBar = {
                         NavigationBar(
                             containerColor = MaterialTheme.colorScheme.surface,
                             contentColor = MaterialTheme.colorScheme.primary
-                            // Removi o tonalElevation daqui! Zero uso de 'dp' neste arquivo.
                         ) {
                             NavigationBarItem(
                                 icon = { Icon(Icons.Default.Home, contentDescription = "Início") },
@@ -72,6 +72,7 @@ fun App() {
                                 onClick = { telaAtual = "aquarios" },
                                 colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
                             )
+                            // 🔥 Ícone de Alerta (Warning/Triângulo) no menu inferior
                             NavigationBarItem(
                                 icon = { Icon(Icons.Default.Warning, contentDescription = "IoT") },
                                 label = { Text("IoT") },
@@ -89,8 +90,12 @@ fun App() {
                         }
                     }
                 ) { paddingValues ->
-                    Modifier.padding(paddingValues).let {
-                        when (telaAtual) {
+                    Crossfade(
+                        targetState = telaAtual,
+                        modifier = Modifier.padding(paddingValues),
+                        label = "AnimacaoAbas"
+                    ) { tela ->
+                        when (tela) {
                             "home" -> TelaHome(
                                 onNavegarParaAquarios = { telaAtual = "aquarios" },
                                 onNavegarParaSensores = { telaAtual = "sensores" },
@@ -102,7 +107,7 @@ fun App() {
                             }
                             "sensores" -> {
                                 LaunchedEffect(Unit) { sensorVM.carregarLeituras() }
-                                TelaSensores(viewModel = sensorVM, onVoltar = { telaAtual = "home" })
+                                TelaSensores(viewModel = sensorVM)
                             }
                             "perfil" -> TelaPerfil(onSair = fazerLogout)
                         }
