@@ -7,64 +7,54 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
-import org.example.project.model.Aquario
-import org.example.project.model.SensorLeitura
+import org.example.project.model.*
 
 class RepositorioRemoto {
 
+    var tokenJwt: String? = null
+    private val BASE_URL = "http://10.92.52.198:8080"
     private val cliente = HttpClient {
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                encodeDefaults = true // Força o envio da água salgada sempre (resolveu seu erro!)
-            })
-        }
+        install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
     }
 
-    // 👇 ATENÇÃO: NÃO ESQUEÇA DE AJUSTAR PARA O IP DO SEU CELULAR 👇
-    private val urlBaseAquarios = "http://10.59.113.144:8080/aquarios"
-
-    suspend fun buscarAquarios(): List<Aquario> {
-        return cliente.get(urlBaseAquarios).body()
+    suspend fun fazerLogin(email: String, senha: String): Boolean {
+        return try {
+            val res: LoginResponse = cliente.post("$BASE_URL/auth/signin") {
+                contentType(ContentType.Application.Json)
+                setBody(LoginRequest(email, senha))
+            }.body()
+            tokenJwt = res.token
+            true
+        } catch (e: Exception) { false }
     }
 
-    suspend fun adicionarAquario(aquario: Aquario) {
-        cliente.post(urlBaseAquarios) {
+    suspend fun obterAquarios(): List<Aquario> = try {
+        cliente.get("$BASE_URL/aquarios") {
+            tokenJwt?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+        }.body()
+    } catch (e: Exception) { emptyList() }
+
+    // Cria um NOVO aquário (POST)
+    suspend fun gravarAquario(aquario: Aquario) = try {
+        cliente.post("$BASE_URL/aquarios") {
             contentType(ContentType.Application.Json)
             setBody(aquario)
+            tokenJwt?.let { header(HttpHeaders.Authorization, "Bearer $it") }
         }
-    }
+    } catch (e: Exception) { null }
 
-    suspend fun atualizarAquario(aquario: Aquario) {
-        cliente.put("$urlBaseAquarios/${aquario.id}") {
+    // NOVA FUNÇÃO: Atualiza um aquário EXISTENTE (PUT)
+    suspend fun atualizarAquario(aquario: Aquario) = try {
+        cliente.put("$BASE_URL/aquarios/${aquario.id}") {
             contentType(ContentType.Application.Json)
             setBody(aquario)
+            tokenJwt?.let { header(HttpHeaders.Authorization, "Bearer $it") }
         }
-    }
+    } catch (e: Exception) { null }
 
-    suspend fun apagarAquario(id: String) {
-        cliente.delete("$urlBaseAquarios/$id")
-    }
-
-    // ====== SENSORES (Local) ======
-    private val leiturasLocais = mutableListOf<SensorLeitura>()
-
-    fun getLeituras(): List<SensorLeitura> {
-        return leiturasLocais
-    }
-
-    fun addLeitura(leitura: SensorLeitura) {
-        leiturasLocais.add(leitura)
-    }
-
-    fun updateLeitura(leitura: SensorLeitura) {
-        val index = leiturasLocais.indexOfFirst { it.id == leitura.id }
-        if (index != -1) {
-            leiturasLocais[index] = leitura
+    suspend fun excluirAquario(id: String) = try {
+        cliente.delete("$BASE_URL/aquarios/$id") {
+            tokenJwt?.let { header(HttpHeaders.Authorization, "Bearer $it") }
         }
-    }
-
-    fun deleteLeitura(id: String) {
-        leiturasLocais.removeAll { it.id == id }
-    }
+    } catch (e: Exception) { null }
 }

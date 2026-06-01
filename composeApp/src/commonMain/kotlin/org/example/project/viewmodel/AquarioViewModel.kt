@@ -1,95 +1,68 @@
 package org.example.project.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import org.example.project.model.Aquario
 import org.example.project.repository.RepositorioRemoto
 
-class AquarioViewModel : ViewModel() {
+class AquarioViewModel(private val repositorio: RepositorioRemoto) : ViewModel() {
+    var listaAquarios by mutableStateOf<List<Aquario>>(emptyList())
 
-    private val repositorio = RepositorioRemoto()
-
-    var listaAquarios by mutableStateOf(listOf<Aquario>())
-        private set
-
-    // Tratamos o formId corretamente como String opcional
-    var formId by mutableStateOf<String?>(null)
+    // Variáveis do formulário (ID agora é String? para bater com o seu Model)
+    var idAtual by mutableStateOf<String?>(null)
     var formNome by mutableStateOf("")
     var formCapacidade by mutableStateOf("")
-    var formAguaSalgada by mutableStateOf(false)
     var formInstalacao by mutableStateOf("")
-
-    init {
-        carregarAquarios()
-    }
+    var mensagemErro by mutableStateOf<String?>(null)
 
     fun carregarAquarios() {
-        viewModelScope.launch {
-            try {
-                listaAquarios = repositorio.buscarAquarios()
-            } catch (e: Exception) {
-                println("Erro ao buscar dados da API: ${e.message}")
-            }
-        }
+        viewModelScope.launch { listaAquarios = repositorio.obterAquarios() }
     }
 
-    fun preencherFormulario(aquario: Aquario) {
-        formId = aquario.id
-        formNome = aquario.nome
-        formCapacidade = aquario.capacidadeLitros.toString()
-        formAguaSalgada = aquario.aguaSalgada
-        formInstalacao = aquario.dataInstalacao
+    fun preencherFormulario(a: Aquario) {
+        idAtual = a.id
+        formNome = a.nome
+        formCapacidade = a.capacidadeLitros.toString() // Corrigido para capacidadeLitros
+        formInstalacao = a.dataInstalacao
     }
 
     fun limparCampos() {
-        formId = null
-        formNome = ""
-        formCapacidade = ""
-        formAguaSalgada = false
-        formInstalacao = ""
+        idAtual = null; formNome = ""; formCapacidade = ""; formInstalacao = ""
     }
 
     fun gravar() {
+        val cap = formCapacidade.toDoubleOrNull() ?: 0.0
+
+        val aquario = Aquario(
+            id = idAtual, // Pode ser null ou ter o ID do aquário que estamos a editar
+            nome = formNome,
+            capacidadeLitros = cap,
+            aguaSalgada = false,
+            dataInstalacao = formInstalacao
+        )
+
         viewModelScope.launch {
-            try {
-                val aquario = Aquario(
-                    id = formId,
-                    nome = formNome,
-                    capacidadeLitros = formCapacidade.toDoubleOrNull() ?: 0.0,
-                    aguaSalgada = formAguaSalgada,
-                    dataInstalacao = formInstalacao
-                )
-
-                if (formId.isNullOrBlank()) {
-                    // Se não tem ID, cria um NOVO registro
-                    repositorio.adicionarAquario(aquario)
-                } else {
-                    // Se tem ID, ATUALIZA o existente
-                    repositorio.atualizarAquario(aquario)
-                }
-
-                limparCampos()
-                carregarAquarios()
-
-            } catch (e: Exception) {
-                println("Erro ao gravar na API: ${e.message}")
+            if (idAtual == null) {
+                // Se não tem ID, é um aquário novo!
+                repositorio.gravarAquario(aquario)
+            } else {
+                // Se já tem ID, o utilizador carregou no botão "Editar" antes!
+                repositorio.atualizarAquario(aquario)
             }
+
+            // Depois de salvar/atualizar, recarrega a lista e limpa o formulário
+            carregarAquarios()
+            limparCampos()
         }
     }
 
-    fun apagar(id: String?) {
-        if (id.isNullOrBlank()) return
+    fun apagar(id: String?) { // Agora aceita String? sem reclamar
+        if (id == null) return
         viewModelScope.launch {
-            try {
-                repositorio.apagarAquario(id)
-                carregarAquarios()
-            } catch (e: Exception) {
-                println("Erro ao apagar na API: ${e.message}")
-            }
+            repositorio.excluirAquario(id) // Descomente quando o repositório tiver essa função
+            carregarAquarios()
         }
     }
 }

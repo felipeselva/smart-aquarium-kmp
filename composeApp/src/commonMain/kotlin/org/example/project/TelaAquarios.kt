@@ -20,9 +20,7 @@ fun TelaAquarios(viewModel: AquarioViewModel) {
         Text("Gerenciar Aquários", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ==========================================
-        // 1. FORMULÁRIO (Requisito H)
-        // ==========================================
+        // 1. FORMULÁRIO
         Card(
             modifier = Modifier.fillMaxWidth(),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -57,14 +55,20 @@ fun TelaAquarios(viewModel: AquarioViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Button(onClick = {
-                        viewModel.gravar()
-                    }) {
+                    Button(onClick = { viewModel.gravar() }) {
                         Text("Gravar")
                     }
                     OutlinedButton(onClick = { viewModel.limparCampos() }) {
                         Text("Limpar")
                     }
+                }
+
+                if (viewModel.mensagemErro != null) {
+                    Text(
+                        text = viewModel.mensagemErro!!,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(8.dp)
+                    )
                 }
             }
         }
@@ -73,9 +77,7 @@ fun TelaAquarios(viewModel: AquarioViewModel) {
         Text("Meus Aquários", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(8.dp))
 
-        // ==========================================
-        // 2. LISTAGEM COM CARDS E ÍCONES (Requisito I, J e K)
-        // ==========================================
+        // 2. LISTAGEM COM CARDS
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(viewModel.listaAquarios) { aquario ->
                 Card(
@@ -88,21 +90,18 @@ fun TelaAquarios(viewModel: AquarioViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            // Aqui garantimos os 3 campos exigidos pelo PDF!
                             Text("Nome: ${aquario.nome}", style = MaterialTheme.typography.titleMedium)
                             Text("Capacidade: ${aquario.capacidadeLitros} L")
                             Text("Instalação: ${aquario.dataInstalacao}")
                         }
 
                         Row {
-                            IconButton(onClick = {
-                                viewModel.preencherFormulario(aquario)
-                            }) {
+                            IconButton(onClick = { viewModel.preencherFormulario(aquario) }) {
                                 Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
                             }
-                            IconButton(onClick = {
-                                viewModel.apagar(aquario.id)
-                            }) {
+
+                            // ERRO DE SINTAXE CORRIGIDO AQUI!!!
+                            IconButton(onClick = { viewModel.apagar(aquario.id) }) {
                                 Icon(Icons.Default.Delete, contentDescription = "Apagar", tint = MaterialTheme.colorScheme.error)
                             }
                         }
