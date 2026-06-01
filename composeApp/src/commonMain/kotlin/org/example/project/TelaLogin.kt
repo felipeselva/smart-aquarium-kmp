@@ -15,7 +15,8 @@ import org.example.project.viewmodel.LoginViewModel
 @Composable
 fun TelaLogin(
     viewModel: LoginViewModel,
-    onNavegarParaAquarios: () -> Unit
+    onNavegarParaAquarios: () -> Unit,
+    onNavegarParaCadastro: () -> Unit // 🔥 Adicione esta linha
 ) {
     // Fundo limpo que abraça a tela inteira
     Surface(
@@ -111,9 +112,9 @@ fun TelaLogin(
             Spacer(modifier = Modifier.height(16.dp))
 
             // TextButton sútil para uma futura tela de registro
-            TextButton(onClick = { /* Lógica de registro no futuro */ }) {
+            TextButton(onClick = onNavegarParaCadastro) { // 🔥 Altere aqui
                 Text(
-                    text = "Criar um novo santuário",
+                    text = "Criar um novo ecossistema",
                     color = MaterialTheme.colorScheme.secondary
                 )
             }

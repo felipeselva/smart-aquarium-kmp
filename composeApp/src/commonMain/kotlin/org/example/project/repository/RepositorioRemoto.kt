@@ -6,8 +6,13 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.example.project.model.*
+
+// 🔥 NOVO: Modelo de dados para o envio do Registo
+@Serializable
+data class CadastroRequest(val nome: String, val email: String, val senha: String)
 
 class RepositorioRemoto {
 
@@ -28,13 +33,28 @@ class RepositorioRemoto {
         } catch (e: Exception) { false }
     }
 
+    // 🔥 NOVA FUNÇÃO: Envia os dados para o Spring Boot criar a conta
+    suspend fun cadastrarUsuario(nome: String, email: String, senha: String): Boolean {
+        return try {
+            // ATENÇÃO: Assumi que a sua rota no Spring Boot é /auth/signup.
+            // Se for diferente (ex: /auth/register ou /usuarios), mude a palavra abaixo!
+            val response = cliente.post("$BASE_URL/auth/signup") {
+                contentType(ContentType.Application.Json)
+                setBody(CadastroRequest(nome, email, senha))
+            }
+            // Se o servidor responder com OK (200) ou Created (201), foi sucesso!
+            response.status == HttpStatusCode.OK || response.status == HttpStatusCode.Created
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     suspend fun obterAquarios(): List<Aquario> = try {
         cliente.get("$BASE_URL/aquarios") {
             tokenJwt?.let { header(HttpHeaders.Authorization, "Bearer $it") }
         }.body()
     } catch (e: Exception) { emptyList() }
 
-    // Cria um NOVO aquário (POST)
     suspend fun gravarAquario(aquario: Aquario) = try {
         cliente.post("$BASE_URL/aquarios") {
             contentType(ContentType.Application.Json)
@@ -43,7 +63,6 @@ class RepositorioRemoto {
         }
     } catch (e: Exception) { null }
 
-    // NOVA FUNÇÃO: Atualiza um aquário EXISTENTE (PUT)
     suspend fun atualizarAquario(aquario: Aquario) = try {
         cliente.put("$BASE_URL/aquarios/${aquario.id}") {
             contentType(ContentType.Application.Json)

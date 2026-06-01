@@ -79,7 +79,7 @@ fun TelaHome(
                     Text("🎏", fontSize = 40.sp, modifier = Modifier.padding(end = 16.dp))
                     Column {
                         Text("Meus Aquários", fontSize = 20.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
-                        Text("Gerencie lagos e carpas", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline)
+                        Text("Gerencie seus Aquários", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline)
                     }
                 }
             }

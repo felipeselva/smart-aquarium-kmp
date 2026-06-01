@@ -35,7 +35,7 @@ fun App() {
     MaterialTheme(colorScheme = TemaZenAquario) {
         val repo = remember { RepositorioRemoto() }
         var telaAtual by remember { mutableStateOf("login") }
-
+        val cadastroVM = remember { CadastroViewModel(repo) }
         val loginVM = remember { LoginViewModel(repo) }
         val aquarioVM = remember { AquarioViewModel(repo) }
         val sensorVM = remember { SensorLeituraViewModel(repo) }
@@ -46,70 +46,81 @@ fun App() {
         }
 
         Surface(color = MaterialTheme.colorScheme.background) {
-            if (telaAtual == "login") {
-                TelaLogin(
-                    viewModel = loginVM,
-                    onNavegarParaAquarios = { telaAtual = "home" }
-                )
-            } else {
-                Scaffold(
-                    bottomBar = {
-                        NavigationBar(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            contentColor = MaterialTheme.colorScheme.primary
-                        ) {
-                            NavigationBarItem(
-                                icon = { Icon(Icons.Default.Home, contentDescription = "Início") },
-                                label = { Text("Início") },
-                                selected = telaAtual == "home",
-                                onClick = { telaAtual = "home" },
-                                colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
-                            )
-                            NavigationBarItem(
-                                icon = { Icon(Icons.Default.List, contentDescription = "Aquários") },
-                                label = { Text("Aquários") },
-                                selected = telaAtual == "aquarios",
-                                onClick = { telaAtual = "aquarios" },
-                                colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
-                            )
-                            // 🔥 Ícone de Alerta (Warning/Triângulo) no menu inferior
-                            NavigationBarItem(
-                                icon = { Icon(Icons.Default.Warning, contentDescription = "IoT") },
-                                label = { Text("IoT") },
-                                selected = telaAtual == "sensores",
-                                onClick = { telaAtual = "sensores" },
-                                colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
-                            )
-                            NavigationBarItem(
-                                icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
-                                label = { Text("Perfil") },
-                                selected = telaAtual == "perfil",
-                                onClick = { telaAtual = "perfil" },
-                                colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
-                            )
+            when (telaAtual) {
+                "login" -> {
+                    TelaLogin(
+                        viewModel = loginVM,
+                        onNavegarParaAquarios = { telaAtual = "home" },
+                        onNavegarParaCadastro = { telaAtual = "cadastro" }
+                    )
+                }
+                "cadastro" -> {
+                    TelaCadastro(
+                        viewModel = cadastroVM, // 👇 PASSE O VIEWMODEL AQUI
+                        onVoltar = { telaAtual = "login" },
+                        onCadastrarSucesso = { telaAtual = "login" }
+                    )
+                }
+                else -> {
+                    // Telas internas com a Bottom Navigation Bar
+                    Scaffold(
+                        bottomBar = {
+                            NavigationBar(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ) {
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Default.Home, contentDescription = "Início") },
+                                    label = { Text("Início") },
+                                    selected = telaAtual == "home",
+                                    onClick = { telaAtual = "home" },
+                                    colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
+                                )
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Default.List, contentDescription = "Aquários") },
+                                    label = { Text("Aquários") },
+                                    selected = telaAtual == "aquarios",
+                                    onClick = { telaAtual = "aquarios" },
+                                    colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
+                                )
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Default.Warning, contentDescription = "IoT") },
+                                    label = { Text("IoT") },
+                                    selected = telaAtual == "sensores",
+                                    onClick = { telaAtual = "sensores" },
+                                    colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
+                                )
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
+                                    label = { Text("Perfil") },
+                                    selected = telaAtual == "perfil",
+                                    onClick = { telaAtual = "perfil" },
+                                    colors = NavigationBarItemDefaults.colors(selectedIconColor = AzulProfundo, indicatorColor = AzulProfundo.copy(alpha = 0.1f))
+                                )
+                            }
                         }
-                    }
-                ) { paddingValues ->
-                    Crossfade(
-                        targetState = telaAtual,
-                        modifier = Modifier.padding(paddingValues),
-                        label = "AnimacaoAbas"
-                    ) { tela ->
-                        when (tela) {
-                            "home" -> TelaHome(
-                                onNavegarParaAquarios = { telaAtual = "aquarios" },
-                                onNavegarParaSensores = { telaAtual = "sensores" },
-                                onSair = fazerLogout
-                            )
-                            "aquarios" -> {
-                                LaunchedEffect(Unit) { aquarioVM.carregarAquarios() }
-                                TelaAquarios(viewModel = aquarioVM)
+                    ) { paddingValues ->
+                        Crossfade(
+                            targetState = telaAtual,
+                            modifier = Modifier.padding(paddingValues),
+                            label = "AnimacaoAbas"
+                        ) { tela ->
+                            when (tela) {
+                                "home" -> TelaHome(
+                                    onNavegarParaAquarios = { telaAtual = "aquarios" },
+                                    onNavegarParaSensores = { telaAtual = "sensores" },
+                                    onSair = fazerLogout
+                                )
+                                "aquarios" -> {
+                                    LaunchedEffect(Unit) { aquarioVM.carregarAquarios() }
+                                    TelaAquarios(viewModel = aquarioVM)
+                                }
+                                "sensores" -> {
+                                    LaunchedEffect(Unit) { sensorVM.carregarLeituras() }
+                                    TelaSensores(viewModel = sensorVM)
+                                }
+                                "perfil" -> TelaPerfil(onSair = fazerLogout)
                             }
-                            "sensores" -> {
-                                LaunchedEffect(Unit) { sensorVM.carregarLeituras() }
-                                TelaSensores(viewModel = sensorVM)
-                            }
-                            "perfil" -> TelaPerfil(onSair = fazerLogout)
                         }
                     }
                 }
