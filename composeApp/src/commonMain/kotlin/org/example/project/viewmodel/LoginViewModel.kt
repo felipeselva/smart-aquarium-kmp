@@ -4,9 +4,9 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import org.example.project.repository.RepositorioRemoto
+import org.example.project.repository.AuthRepositorioRemoto
 
-class LoginViewModel(private val repositorio: RepositorioRemoto) : ViewModel() {
+class LoginViewModel(private val repositorio: AuthRepositorioRemoto) : ViewModel() {
 
     var email by mutableStateOf("")
     var senha by mutableStateOf("")

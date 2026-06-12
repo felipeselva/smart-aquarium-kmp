@@ -12,11 +12,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.example.project.viewmodel.CadastroViewModel // 🔥 Importação do novo ViewModel
+import org.example.project.viewmodel.CadastroViewModel
 
 @Composable
 fun TelaCadastro(
-    viewModel: CadastroViewModel, // 🔥 Agora a tela recebe o ViewModel
+    viewModel: CadastroViewModel,
     onVoltar: () -> Unit,
     onCadastrarSucesso: () -> Unit
 ) {
@@ -25,17 +25,14 @@ fun TelaCadastro(
         color = MaterialTheme.colorScheme.background
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
                 IconButton(
                     onClick = {
-                        viewModel.limparCampos() // Limpa os erros ao voltar
+                        viewModel.limparCampos()
                         onVoltar()
                     },
                     modifier = Modifier.offset(x = (-16).dp)
@@ -45,10 +42,8 @@ fun TelaCadastro(
             }
 
             Text("Novo Registo", fontSize = 32.sp, fontWeight = FontWeight.Light, color = MaterialTheme.colorScheme.primary)
-
             Text("Inicie o seu ecossistema.", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(top = 8.dp, bottom = 48.dp))
 
-            // 🔥 Usamos os dados diretamente do ViewModel agora
             OutlinedTextField(
                 value = viewModel.nome,
                 onValueChange = { viewModel.nome = it },
@@ -78,8 +73,18 @@ fun TelaCadastro(
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
             )
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔥 Feedback visual de Erro
+            OutlinedTextField(
+                value = viewModel.confirmacaoSenha,
+                onValueChange = { viewModel.confirmacaoSenha = it },
+                label = { Text("Confirmar Senha") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
             if (viewModel.mensagemErro != null) {
                 Text(
                     text = viewModel.mensagemErro!!,
@@ -92,10 +97,7 @@ fun TelaCadastro(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = {
-                    // 🔥 Aciona a lógica real de cadastro no ViewModel
-                    viewModel.cadastrar(onSucesso = onCadastrarSucesso)
-                },
+                onClick = { viewModel.cadastrar(onSucesso = onCadastrarSucesso) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),

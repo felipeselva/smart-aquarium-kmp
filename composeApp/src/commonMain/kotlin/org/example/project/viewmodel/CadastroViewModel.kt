@@ -6,30 +6,34 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.example.project.repository.RepositorioRemoto
+import org.example.project.repository.AuthRepositorioRemoto
 
-class CadastroViewModel(private val repository: RepositorioRemoto) {
+class CadastroViewModel(private val repository: AuthRepositorioRemoto) {
     var nome by mutableStateOf("")
     var email by mutableStateOf("")
     var senha by mutableStateOf("")
+    var confirmacaoSenha by mutableStateOf("")
     var mensagemErro by mutableStateOf<String?>(null)
 
     fun cadastrar(onSucesso: () -> Unit) {
-        if (nome.isBlank() || email.isBlank() || senha.isBlank()) {
+        if (nome.isBlank() || email.isBlank() || senha.isBlank() || confirmacaoSenha.isBlank()) {
             mensagemErro = "Por favor, preencha todos os campos. 🎋"
+            return
+        }
+
+        if (senha != confirmacaoSenha) {
+            mensagemErro = "As senhas não coincidem!"
             return
         }
 
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                // 🔥 AQUI ESTÁ A MÁGICA: Chamando a função real do Repositório!
                 val sucesso = repository.cadastrarUsuario(nome, email, senha)
-
                 if (sucesso) {
                     mensagemErro = null
-                    onSucesso() // Sucesso! O App.kt vai redirecionar o utilizador para o Login
+                    onSucesso()
                 } else {
-                    mensagemErro = "Erro ao criar conta. O e-mail pode já estar em uso."
+                    mensagemErro = "Erro ao criar conta. Tente outro e-mail."
                 }
             } catch (e: Exception) {
                 mensagemErro = "Erro de conexão com o servidor."
@@ -38,9 +42,6 @@ class CadastroViewModel(private val repository: RepositorioRemoto) {
     }
 
     fun limparCampos() {
-        nome = ""
-        email = ""
-        senha = ""
-        mensagemErro = null
+        nome = ""; email = ""; senha = ""; confirmacaoSenha = ""; mensagemErro = null
     }
 }
